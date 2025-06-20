@@ -1,46 +1,18 @@
-name: Deploy Discord VPS Creator
+- name: Install System Dependencies & Docker
+  run: |
+    sudo apt update
+    sudo apt install -y python3 python3-pip python3-venv git curl ca-certificates gnupg lsb-release
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    # Add Docker’s official GPG key
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+    # Add Docker repository
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      $(lsb_release -cs) stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Install System Dependencies
-      run: |
-        sudo apt update
-        sudo apt remove -y containerd || true
-        sudo apt install -y python3 python3-pip python3-venv git docker.io curl
-
-    - name: Set up Python venv and install pip packages
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip
-        pip install discord docker
-
-    - name: Clone VPS Creator
-      run: |
-        git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
-        cd creator
-
-    - name: Run setup script (optional)
-      run: |
-        cd creator
-        chmod +x install.sh || true
-        ./install.sh || true
-
-    - name: Run bot
-      run: |
-        cd creator
-        source ../venv/bin/activate
-        python3 v2.py  # or whichever main file you use
+    # Update and install Docker
+    sudo apt update
+    sudo apt install -y docker-ce docker-ce-cli containerd.io
