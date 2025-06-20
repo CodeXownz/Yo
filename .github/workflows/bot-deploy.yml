@@ -1,18 +1,51 @@
-- name: Install System Dependencies & Docker
-  run: |
-    sudo apt update
-    sudo apt install -y python3 python3-pip python3-venv git curl ca-certificates gnupg lsb-release
+name: VPS‑Deployer Bot
 
-    # Add Docker’s official GPG key
-    sudo install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+on:
+  workflow_dispatch:
 
-    # Add Docker repository
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-      $(lsb_release -cs) stable" | \
-      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-    # Update and install Docker
-    sudo apt update
-    sudo apt install -y docker-ce docker-ce-cli containerd.io
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system packages + Docker
+        run: |
+          sudo apt update
+          sudo apt install -y ca-certificates curl gnupg lsb-release python3 python3-pip python3-venv git
+
+          # Docker's GPG & repository
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          echo \
+            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+            https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+          sudo apt update
+          sudo apt install -y docker-ce docker-ce-cli containerd.io
+
+      - name: Set up Python virtual environment
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install discord docker
+
+      - name: Clone VPS Creator Bot
+        run: |
+          git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+
+      - name: Start VPS deployer bot
+        working-directory: ./creator
+        env:
+          TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          source ../venv/bin/activate
+          nohup python3 v2.py > v2.log 2>&1 &
+
+      - name: Keep runner alive
+        run: |
+          while true; do sleep 60; done
