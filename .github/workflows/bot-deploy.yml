@@ -18,7 +18,9 @@ jobs:
           echo "import os" > bot/bot.py
           echo "import discord" >> bot/bot.py
           echo "from discord.ext import commands" >> bot/bot.py
-          echo "bot = commands.Bot(command_prefix='!')" >> bot/bot.py
+          echo "intents = discord.Intents.default()" >> bot/bot.py
+          echo "intents.message_content = True" >> bot/bot.py
+          echo "bot = commands.Bot(command_prefix='!', intents=intents)" >> bot/bot.py
           echo "@bot.event" >> bot/bot.py
           echo "async def on_ready():" >> bot/bot.py
           echo "    print(f'Logged in as {bot.user}')" >> bot/bot.py
