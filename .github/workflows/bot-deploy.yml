@@ -14,26 +14,26 @@ jobs:
 
       - name: Create bot folder and code
         run: |
-          mkdir -p /root/bot
-          echo "import os" > /root/bot/bot.py
-          echo "import discord" >> /root/bot/bot.py
-          echo "from discord.ext import commands" >> /root/bot/bot.py
-          echo "bot = commands.Bot(command_prefix='!')" >> /root/bot/bot.py
-          echo "@bot.event" >> /root/bot/bot.py
-          echo "async def on_ready():" >> /root/bot/bot.py
-          echo "    print(f'Logged in as {bot.user}')" >> /root/bot/bot.py
-          echo "bot.run(os.getenv('BOT_TOKEN'))" >> /root/bot/bot.py
-          echo "discord.py" > /root/bot/requirements.txt
+          mkdir -p bot
+          echo "import os" > bot/bot.py
+          echo "import discord" >> bot/bot.py
+          echo "from discord.ext import commands" >> bot/bot.py
+          echo "bot = commands.Bot(command_prefix='!')" >> bot/bot.py
+          echo "@bot.event" >> bot/bot.py
+          echo "async def on_ready():" >> bot/bot.py
+          echo "    print(f'Logged in as {bot.user}')" >> bot/bot.py
+          echo "bot.run(os.getenv('BOT_TOKEN'))" >> bot/bot.py
+          echo "discord.py" > bot/requirements.txt
 
       - name: Install Python packages
         run: |
-          pip3 install -r /root/bot/requirements.txt
+          pip3 install -r bot/requirements.txt
 
       - name: Run the bot using your secret
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          nohup python3 /root/bot/bot.py > /root/bot/bot.log 2>&1 &
+          nohup python3 bot/bot.py > bot/bot.log 2>&1 &
 
       - name: Start SSH (tmate)
         run: |
