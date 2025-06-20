@@ -1,44 +1,28 @@
+name: Free VPS with Docker and SSH
 
-name: VPS Bot Deployer
-
-on:
-  workflow_dispatch:
+on: [workflow_dispatch]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout bot repo
-        uses: actions/checkout@v4
-
-      - name: Install Python and dependencies
+      - name: Setup Docker
         run: |
-          sudo apt update
-          sudo apt install -y python3 python3-pip python3-venv
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
-          pip install discord docker
+          curl -fsSL https://get.docker.com | sh
 
-      - name: Clone bot code
+      - name: Install tmate
         run: |
-          git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
+          sudo apt-get update
+          sudo apt-get install -y tmate
 
-      - name: Inject token and run test
-        working-directory: ./creator
-        env:
-          TOKEN: ${{ secrets.BOT_TOKEN }}
+      - name: Start tmate and show SSH info
         run: |
-          # Replace token logic in bot
-          sed -i '1s|^|import os\nTOKEN = os.environ.get("TOKEN")\n|' v2.py
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
+          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
 
-          # Confirm token is present
-          echo "TOKEN is: $TOKEN"
-          if [ -z "$TOKEN" ]; then
-            echo "❌ No token detected. Check your GitHub secret."
-            exit 1
-          fi
-
-          # Run the bot
-          ../venv/bin/python3 v2.py
+      - name: Keep alive
+        run: |
+          echo "Session ready. Connect via the above link."
+          while true; do sleep 60; done
