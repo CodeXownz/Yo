@@ -12,7 +12,11 @@ jobs:
       - name: Install Python and pip
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip python3-venv
+          sudo apt install -y python3 python3-pip python3-venv git
+
+      - name: Clone your bot repo
+        run: |
+          git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
 
       - name: Setup venv and install discord lib
         run: |
@@ -25,10 +29,9 @@ jobs:
           if grep -q '^TOKEN *= *os.environ.get("TOKEN")' creator/v2.py; then
             echo "Token injection confirmed"
           else
-            sed -i '1s|^|import os\nTOKEN = os.environ.get(\"TOKEN\")\n|' creator/v2.py
+            sed -i '1s|^|import os\nTOKEN = os.environ.get("TOKEN")\n|' creator/v2.py
             echo "Injected TOKEN line"
           fi
-        working-directory: .
 
       - name: Run bot directly
         run: |
