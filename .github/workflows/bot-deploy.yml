@@ -7,31 +7,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # 1. Checkout your repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install dependencies
+      # 2. Install required system packages
+      - name: Install system packages
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip tmate git docker.io || true
           sudo systemctl start docker
 
-      - name: Clone VPS Creator Tool
+      # 3. Clone the VPS creator tool
+      - name: Clone discord-vps-creator
         run: |
           git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
 
-      - name: Install Python requirements
-        working-directory: ./creator
+      # 4. Install Python dependencies inside creator folder
+      - name: Install Python dependencies
         run: |
+          cd creator
+          ls -la .
           pip3 install -r requirements.txt
 
-      - name: Run VPS deployer bot
-        working-directory: ./creator
+      # 5. Launch the VPS deployer bot
+      - name: Start VPS deployer bot
         env:
           TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
+          cd creator
           nohup python3 v2.py > v2.log 2>&1 &
 
+      # 6. Keep workflow alive so bot runs continuously
       - name: Keep workflow alive
         run: |
           while true; do sleep 60; done
