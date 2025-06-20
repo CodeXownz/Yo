@@ -24,6 +24,15 @@ jobs:
           echo "@bot.event" >> bot/bot.py
           echo "async def on_ready():" >> bot/bot.py
           echo "    print(f'Logged in as {bot.user}')" >> bot/bot.py
+          echo "" >> bot/bot.py
+          echo "@bot.command()" >> bot/bot.py
+          echo "async def ping(ctx):" >> bot/bot.py
+          echo "    await ctx.send('Pong!')" >> bot/bot.py
+          echo "" >> bot/bot.py
+          echo "@bot.command()" >> bot/bot.py
+          echo "async def hello(ctx):" >> bot/bot.py
+          echo "    await ctx.send('Hello, I am alive!')" >> bot/bot.py
+          echo "" >> bot/bot.py
           echo "bot.run(os.getenv('BOT_TOKEN'))" >> bot/bot.py
           echo "discord.py" > bot/requirements.txt
 
