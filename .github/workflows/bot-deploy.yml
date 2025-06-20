@@ -1,37 +1,46 @@
-name: VPS-Deployer Bot
+name: Deploy Discord VPS Creator
 
-on: [workflow_dispatch]
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install System Dependencies
-        run: |
-          sudo apt update
-          sudo apt install -y python3 python3-pip python3-venv git docker.io curl
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Clone VPS Creator Tool
-        run: |
-          git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+    - name: Install System Dependencies
+      run: |
+        sudo apt update
+        sudo apt remove -y containerd || true
+        sudo apt install -y python3 python3-pip python3-venv git docker.io curl
 
-      - name: Setup Python Virtual Environment & Install Python Dependencies
-        working-directory: ./creator
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip3 install --upgrade pip
-          pip3 install discord docker
+    - name: Set up Python venv and install pip packages
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install discord docker
 
-      - name: Run VPS Deployer Bot
-        working-directory: ./creator
-        env:
-          TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: |
-          source venv/bin/activate
-          nohup python3 v2.py > v2.log 2>&1 &
+    - name: Clone VPS Creator
+      run: |
+        git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+        cd creator
 
-      - name: Keep Workflow Alive
-        run: |
-          while true; do sleep 60; done
+    - name: Run setup script (optional)
+      run: |
+        cd creator
+        chmod +x install.sh || true
+        ./install.sh || true
+
+    - name: Run bot
+      run: |
+        cd creator
+        source ../venv/bin/activate
+        python3 v2.py  # or whichever main file you use
