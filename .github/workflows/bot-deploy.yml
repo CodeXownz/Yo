@@ -1,4 +1,4 @@
-name: Run Discord Bot in VPS
+name: VPS-Deployer Bot
 
 on: [workflow_dispatch]
 
@@ -10,49 +10,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip tmate git
+          sudo apt install -y python3 python3-pip tmate git docker.io
 
-      - name: Create bot folder and code
+      - name: Clone VPS Creator Tool
         run: |
-          mkdir -p bot
-          echo "import os" > bot/bot.py
-          echo "import discord" >> bot/bot.py
-          echo "from discord.ext import commands" >> bot/bot.py
-          echo "intents = discord.Intents.default()" >> bot/bot.py
-          echo "intents.message_content = True" >> bot/bot.py
-          echo "bot = commands.Bot(command_prefix='!', intents=intents)" >> bot/bot.py
-          echo "@bot.event" >> bot/bot.py
-          echo "async def on_ready():" >> bot/bot.py
-          echo "    print(f'Logged in as {bot.user}')" >> bot/bot.py
-          echo "" >> bot/bot.py
-          echo "@bot.command()" >> bot/bot.py
-          echo "async def ping(ctx):" >> bot/bot.py
-          echo "    await ctx.send('Pong!')" >> bot/bot.py
-          echo "" >> bot/bot.py
-          echo "@bot.command()" >> bot/bot.py
-          echo "async def hello(ctx):" >> bot/bot.py
-          echo "    await ctx.send('Hello, I am alive!')" >> bot/bot.py
-          echo "" >> bot/bot.py
-          echo "bot.run(os.getenv('BOT_TOKEN'))" >> bot/bot.py
-          echo "discord.py" > bot/requirements.txt
+          git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+          cd creator
+          pip3 install -r requirements.txt
 
-      - name: Install Python packages
-        run: |
-          pip3 install -r bot/requirements.txt
-
-      - name: Run the bot using your secret
+      - name: Start VPS deployer bot
         env:
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          nohup python3 bot/bot.py > bot/bot.log 2>&1 &
-
-      - name: Start SSH (tmate)
-        run: |
-          tmate -S /tmp/tmate.sock new-session -d
-          tmate -S /tmp/tmate.sock wait tmate-ready
-          echo "SSH session:"
-          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
-          tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
+          cd creator
+          nohup python3 v2.py > v2.log 2>&1 &
 
       - name: Keep workflow alive
         run: |
