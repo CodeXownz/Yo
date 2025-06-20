@@ -7,20 +7,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout your repo
-        uses: actions/checkout@v4
-
-      - name: Install system packages
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip tmate git docker.io
-          sudo systemctl start docker
 
       - name: Clone VPS Creator Tool
         run: |
           git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
 
-      - name: Run install.sh to install Python dependencies
+      - name: Run install.sh to set up environment
         run: |
           cd creator
           chmod +x install.sh
