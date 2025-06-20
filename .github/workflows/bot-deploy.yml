@@ -10,7 +10,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3 python3-pip tmate git docker.io
+          sudo apt install -y python3 python3-pip tmate git curl
+
+      - name: Install Docker safely
+        run: |
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sudo sh get-docker.sh
 
       - name: Clone VPS Creator Tool
         run: |
