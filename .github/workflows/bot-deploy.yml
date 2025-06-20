@@ -36,7 +36,7 @@ jobs:
 
       - name: Clone VPS Creator Bot
         run: |
-          git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+          git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
 
       - name: Start VPS deployer bot
         working-directory: ./creator
