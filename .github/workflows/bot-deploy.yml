@@ -7,25 +7,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install dependencies
+      - name: Install dependencies (no containerd conflict)
         run: |
           sudo apt update
           sudo apt install -y python3 python3-pip tmate git docker.io || true
           sudo systemctl start docker
 
       - name: Clone VPS Creator Tool
-        run: git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+        run: |
+          git clone https://github.com/katy-the-kat/discord-vps-creator.git creator
+
+      - name: Change to creator folder
+        run: |
+          cd creator && pwd
 
       - name: Install Python requirements
+        working-directory: creator
         run: |
-          cd creator
-          pip3 install --user -r requirements.txt
+          pip3 install -r requirements.txt
 
       - name: Run VPS deployer bot
+        working-directory: creator
         env:
           TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
-          cd creator
           nohup python3 v2.py > v2.log 2>&1 &
 
       - name: Keep workflow alive
