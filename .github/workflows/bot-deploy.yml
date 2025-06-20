@@ -4,25 +4,30 @@ on: [workflow_dispatch]
 
 jobs:
   build:
+    name: Start Temporary VPS with SSH
     runs-on: ubuntu-latest
+
     steps:
-      - name: Setup Docker
+      - name: Install Docker
         run: |
           curl -fsSL https://get.docker.com | sh
 
-      - name: Install tmate
+      - name: Install tmate for SSH access
         run: |
           sudo apt-get update
           sudo apt-get install -y tmate
 
-      - name: Start tmate and show SSH info
+      - name: Setup SSH session with tmate
         run: |
+          echo "🟡 Starting tmate session..."
           tmate -S /tmp/tmate.sock new-session -d
           tmate -S /tmp/tmate.sock wait tmate-ready
+          echo "🔗 SSH access:"
           tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          echo "🌐 Web terminal:"
           tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
 
-      - name: Keep alive
+      - name: Keep Runner Alive
         run: |
-          echo "Session ready. Connect via the above link."
+          echo "🟢 VPS is running. Don't close this job."
           while true; do sleep 60; done
