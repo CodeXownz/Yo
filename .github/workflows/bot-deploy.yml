@@ -1,0 +1,48 @@
+name: Run Discord Bot in VPS
+
+on: [workflow_dispatch]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3 python3-pip tmate git
+
+      - name: Create bot folder and code
+        run: |
+          mkdir -p /root/bot
+          echo "import os" > /root/bot/bot.py
+          echo "import discord" >> /root/bot/bot.py
+          echo "from discord.ext import commands" >> /root/bot/bot.py
+          echo "bot = commands.Bot(command_prefix='!')" >> /root/bot/bot.py
+          echo "@bot.event" >> /root/bot/bot.py
+          echo "async def on_ready():" >> /root/bot/bot.py
+          echo "    print(f'Logged in as {bot.user}')" >> /root/bot/bot.py
+          echo "bot.run(os.getenv('BOT_TOKEN'))" >> /root/bot/bot.py
+          echo "discord.py" > /root/bot/requirements.txt
+
+      - name: Install Python packages
+        run: |
+          pip3 install -r /root/bot/requirements.txt
+
+      - name: Run the bot using your secret
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: |
+          nohup python3 /root/bot/bot.py > /root/bot/bot.log 2>&1 &
+
+      - name: Start SSH (tmate)
+        run: |
+          tmate -S /tmp/tmate.sock new-session -d
+          tmate -S /tmp/tmate.sock wait tmate-ready
+          echo "SSH session:"
+          tmate -S /tmp/tmate.sock display -p '#{tmate_ssh}'
+          tmate -S /tmp/tmate.sock display -p '#{tmate_web}'
+
+      - name: Keep workflow alive
+        run: |
+          while true; do sleep 60; done
