@@ -18,11 +18,12 @@ jobs:
         run: |
           git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
 
-      - name: Setup venv and install discord lib
+      - name: Setup venv and install required Python packages
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install --upgrade pip discord
+          pip install --upgrade pip
+          pip install discord docker  # <-- ADD docker here
 
       - name: Inject token line in v2.py
         run: |
