@@ -38,14 +38,30 @@ jobs:
         run: |
           git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
 
-      - name: Start VPS deployer bot
+      - name: Inject token line & run bot
         working-directory: ./creator
         env:
           TOKEN: ${{ secrets.BOT_TOKEN }}
         run: |
+          echo "✅ Injecting token handler..."
+
+          # Replace token line properly with env support
+          sed -i 's/^TOKEN *=.*/import os\\nTOKEN = os.environ.get("TOKEN")/' v2.py
+
+          # Confirm injection
+          grep TOKEN v2.py || echo "❌ TOKEN line not found in v2.py"
+
+          echo "✅ Starting bot..."
           source ../venv/bin/activate
-          nohup python3 v2.py > v2.log 2>&1 &
+          nohup python3 v2.py > ../bot.log 2>&1 &
+
+      - name: Show bot log
+        run: |
+          echo "===== BOT LOG START ====="
+          cat bot.log || echo "⚠️ No bot.log file found"
+          echo "===== BOT LOG END ====="
 
       - name: Keep runner alive
         run: |
+          echo "✅ Keeping runner alive..."
           while true; do sleep 60; done
