@@ -1,67 +1,38 @@
-name: VPS‑Deployer Bot
+name: Bot-Debug Runner
 
-on:
-  workflow_dispatch:
+on: workflow_dispatch
 
 jobs:
-  deploy:
+  debug:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install system packages + Docker
+      - name: Install Python and pip
         run: |
           sudo apt update
-          sudo apt install -y ca-certificates curl gnupg lsb-release python3 python3-pip python3-venv git
+          sudo apt install -y python3 python3-pip python3-venv
 
-          # Docker's GPG & repository
-          sudo install -m 0755 -d /etc/apt/keyrings
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-          echo \
-            "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-            https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
-            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-          sudo apt update
-          sudo apt install -y docker-ce docker-ce-cli containerd.io
-
-      - name: Set up Python virtual environment
+      - name: Setup venv and install discord lib
         run: |
           python3 -m venv venv
           source venv/bin/activate
-          pip install --upgrade pip
-          pip install discord docker
+          pip install --upgrade pip discord
 
-      - name: Clone VPS Creator Bot
+      - name: Inject token line in v2.py
         run: |
-          git clone https://github.com/pythonfcxyz/discord-vps-creator.git creator
+          if grep -q '^TOKEN *= *os.environ.get("TOKEN")' creator/v2.py; then
+            echo "Token injection confirmed"
+          else
+            sed -i '1s|^|import os\nTOKEN = os.environ.get(\"TOKEN\")\n|' creator/v2.py
+            echo "Injected TOKEN line"
+          fi
+        working-directory: .
 
-      - name: Inject token line & run bot
-        working-directory: ./creator
+      - name: Run bot directly
+        run: |
+          source venv/bin/activate
+          python3 creator/v2.py
         env:
           TOKEN: ${{ secrets.BOT_TOKEN }}
-        run: |
-          echo "✅ Injecting token handler..."
-
-          # Replace token line properly with env support
-          sed -i 's/^TOKEN *=.*/import os\\nTOKEN = os.environ.get("TOKEN")/' v2.py
-
-          # Confirm injection
-          grep TOKEN v2.py || echo "❌ TOKEN line not found in v2.py"
-
-          echo "✅ Starting bot..."
-          source ../venv/bin/activate
-          nohup python3 v2.py > ../bot.log 2>&1 &
-
-      - name: Show bot log
-        run: |
-          echo "===== BOT LOG START ====="
-          cat bot.log || echo "⚠️ No bot.log file found"
-          echo "===== BOT LOG END ====="
-
-      - name: Keep runner alive
-        run: |
-          echo "✅ Keeping runner alive..."
-          while true; do sleep 60; done
