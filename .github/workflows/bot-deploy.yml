@@ -4,8 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     # This schedule runs every day at midnight UTC.
-    # To change the schedule, you can modify the cron string.
-    # For example, to run every hour, use '0 * * * *'.
     - cron: '0 0 * * *'
 
 jobs:
@@ -31,8 +29,16 @@ jobs:
       - name: Setup Ngrok Dedicated IPv4 Tunnel
         run: |
           echo "🟡 Setting up ngrok dedicated IPv4 tunnel..."
-          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.deb -o ngrok.deb
+          curl -sS https://ngrok.com/download/ngrok-v3/ngrok-v3-stable-linux-amd64.deb -o ngrok.deb
           sudo dpkg -i ngrok.deb
+          rm ngrok.deb
+          
+          # Alternative and more robust way to install ngrok
+          # curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.asc | sudo tee /etc/apt/trusted.gpg.d/ngrok.asc >/dev/null
+          # echo "deb https://ngrok-agent.s3.amazonaws.com bionic main" | sudo tee /etc/apt/sources.list.d/ngrok.list
+          # sudo apt-get update
+          # sudo apt-get install ngrok
+
           ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
           ngrok tcp --remote-addr <your_dedicated_ipv4> 22 &
           sleep 10
