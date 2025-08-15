@@ -1,10 +1,16 @@
-name: Free VPS with Docker and SSH
+name: grand master vps 
 
-on: [workflow_dispatch]
+on: 
+  workflow_dispatch:
+  schedule:
+    # This schedule runs every day at midnight UTC.
+    # To change the schedule, you can modify the cron string.
+    # For example, to run every hour, use '0 * * * *'.
+    - cron: '0 0 * * *'
 
 jobs:
   build:
-    name: Start Temporary VPS with SSH
+    name: grand master vps 
     runs-on: ubuntu-latest
 
     steps:
@@ -16,6 +22,23 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y tmate
+      
+      - name: Show Runner's IPv4 Address
+        run: |
+          echo "🌐 Your Runner's IPv4 Address is:"
+          curl ifconfig.me
+      
+      - name: Setup Ngrok Dedicated IPv4 Tunnel
+        run: |
+          echo "🟡 Setting up ngrok dedicated IPv4 tunnel..."
+          curl -s https://ngrok-agent.s3.amazonaws.com/ngrok.deb -o ngrok.deb
+          sudo dpkg -i ngrok.deb
+          ngrok config add-authtoken ${{ secrets.NGROK_AUTH_TOKEN }}
+          ngrok tcp --remote-addr <your_dedicated_ipv4> 22 &
+          sleep 10
+          echo "🔗 Ngrok Tunnel Status:"
+          curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url'
+          echo "🟢 Ngrok tunnel is running on port 22."
 
       - name: Setup SSH session with tmate
         run: |
